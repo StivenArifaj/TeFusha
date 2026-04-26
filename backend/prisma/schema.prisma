@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int               @id @default(autoincrement())
+  emri              String            @db.VarChar(100)
+  email             String            @unique @db.VarChar(150)
+  fjalekalimi       String            @db.VarChar(255)
+  nr_telefoni       String?           @db.VarChar(20)
+  roli              UserRole          @default(perdorues)
+  data_regjistrimit DateTime          @default(now())
+  fushat            Field[]           @relation("PronarFushes")
+  rezervimet        Booking[]         @relation("PerdoruesRezervimit")
+  eventet           Event[]           @relation("OrganizatorEventi")
+  ekipet            TeamMember[]
+  ekipet_krijuara   Team[]            @relation("KapiteniEkipeve")
+  njoftimet         MatchmakingPost[]
+
+  // New relations — add these to the existing User model
+  njoftimet_e_mia    Announcement[]         @relation("PerdoruesNjoftim")
+  pergjigjet_e_mia   AnnouncementResponse[] @relation("PerdoruesPergjigje")
+  ekipet_e_mia       StandaloneTeam[]       @relation("KapiteniEkipit")
+  anetaresim_ekipe   StandaloneTeamMember[] @relation("AnetarEkipit")
+
+  @@map("users")
+}
+
+enum UserRole {
+  perdorues
+  pronar_fushe
+  admin
+}
+
+model Field {
+  id           Int         @id @default(autoincrement())
+  emri_fushes  String      @db.VarChar(100)
+  lloji_fushes FieldType
+  vendndodhja  String      @db.VarChar(200)
+  qyteti       String      @db.VarChar(100)
+  cmimi_orari  Decimal     @db.Decimal(10, 2)
+  kapaciteti   Int
+  pajisjet     String?     @db.Text
+  statusi      FieldStatus @default(aktiv)
+  lat          Float?
+  lng          Float?
+  pronari_id   Int
+  created_at   DateTime    @default(now())
+  pronari      User        @relation("PronarFushes", fields: [pronari_id], references: [id])
+  rezervimet   Booking[]
+  eventet      Event[]
+
+  @@map("fields")
+}
+
+enum FieldType {
+  futboll
+  basketboll
+  tenis
+  volejboll
+  tjeter
+}
+
+enum FieldStatus {
+  aktiv
+  joaktiv
+  ne_mirembajtje
+}
+
+model Booking {
+  id              Int           @id @default(autoincrement())
+  fusha_id        Int
+  perdoruesi_id   Int
+  data_rezervimit DateTime      @db.Date
+  ora_fillimit    DateTime      @db.Time(6)
+  ora_mbarimit    DateTime      @db.Time(6)
+  statusi         BookingStatus @default(ne_pritje)
+  cmimi_total     Decimal       @db.Decimal(10, 2)
+  data_krijimit   DateTime      @default(now())
+  fusha           Field         @relation(fields: [fusha_id], references: [id])
+  perdoruesi      User          @relation("PerdoruesRezervimit", fields: [perdoruesi_id], references: [id])
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  ne_pritje
+  konfirmuar
+  anuluar
+}
+
+model Event {
+  id              Int         @id @default(autoincrement())
+  emri_eventit    String      @db.VarChar(150)
+  lloji           EventType
+  fusha_id        Int
+  data_fillimit   DateTime    @db.Date
+  data_mbarimit   DateTime    @db.Date
+  nr_max_ekipesh  Int
+  organizatori_id Int
+  statusi         EventStatus @default(planifikuar)
+  fusha           Field       @relation(fields: [fusha_id], references: [id])
+  organizatori    User        @relation("OrganizatorEventi", fields: [organizatori_id], references: [id])
+  ekipet          EventTeam[]
+  ndeshjet        Match[]
+
+  @@map("events")
+}
+
+enum EventType {
+  eventi
+  kampionat
+  turneu
+}
+
+enum EventStatus {
+  planifikuar
+  aktiv
+  perfunduar
+}
+
+model Team {
+  id          Int          @id @default(autoincrement())
+  emri        String       @db.VarChar(100)
+  logo_url    String?      @db.Text
+  kapiteni_id Int
+  created_at  DateTime     @default(now())
+  kapiteni    User         @relation("KapiteniEkipeve", fields: [kapiteni_id], references: [id])
+  anetaret    TeamMember[]
+  eventet     EventTeam[]
+  ndeshjet_sh Match[]      @relation("EkipiShtepi")
+  ndeshjet_ud Match[]      @relation("EkipiUdhetimit")
+
+  @@map("teams")
+}
+
+model EventTeam {
+  eventi_id Int
+  ekipi_id  Int
+  eventi    Event @relation(fields: [eventi_id], references: [id])
+  ekipi     Team  @relation(fields: [ekipi_id], references: [id])
+
+  @@id([eventi_id, ekipi_id])
+  @@map("event_teams")
+}
+
+model TeamMember {
+  id            Int  @id @default(autoincrement())
+  ekipi_id      Int
+  perdoruesi_id Int
+  ekipi         Team @relation(fields: [ekipi_id], references: [id])
+  perdoruesi    User @relation(fields: [perdoruesi_id], references: [id])
+
+  @@map("team_members")
+}
+
+model Match {
+  id                 Int       @id @default(autoincrement())
+  eventi_id          Int
+  ekipi_shtepi_id    Int
+  ekipi_udhetimit_id Int
+  gola_shtepi        Int?
+  gola_udhetimit     Int?
+  data_ndeshjes      DateTime?
+  raundi             String?   @db.VarChar(50)
+  eventi             Event     @relation(fields: [eventi_id], references: [id])
+  ekipi_shtepi       Team      @relation("EkipiShtepi", fields: [ekipi_shtepi_id], references: [id])
+  ekipi_udhetimit    Team      @relation("EkipiUdhetimit", fields: [ekipi_udhetimit_id], references: [id])
+
+  @@map("matches")
+}
+
+model MatchmakingPost {
+  id            Int       @id @default(autoincrement())
+  perdoruesi_id Int
+  titulli       String    @db.VarChar(150)
+  pershkrimi    String    @db.Text
+  lloji_sportit String    @db.VarChar(50)
+  qyteti        String    @db.VarChar(100)
+  data_ndeshjes DateTime? @db.Date
+  statusi       String    @default("aktiv")
+  created_at    DateTime  @default(now())
+  perdoruesi    User      @relation(fields: [perdoruesi_id], references: [id])
+
+  @@map("matchmaking_posts")
+}
+
+// ─── NJOFTIM (Matchmaking Announcement) ─────────────────────────
+// New table for PMP §4.1 - Community matchmaking feature
+// A user or team posts that they need players, opponents, or a team to join
+
+model Announcement {
+  id             Int                  @id @default(autoincrement())
+  userId         Int
+  titull         String               @db.VarChar(150)
+  pershkrim      String               @db.Text
+  lloji_sportit  String               @db.VarChar(50)
+  vendndodhja    String?              @db.VarChar(200)
+  data_lojes     DateTime?
+  lojtare_nevojitet Int               @default(1)
+  tipi           AnnouncementType
+  statusi        String               @default("aktiv")
+  created_at     DateTime             @default(now())
+
+  perdoruesi     User                 @relation("PerdoruesNjoftim", fields: [userId], references: [id])
+  pergjigjet     AnnouncementResponse[]
+
+  @@map("announcements")
+}
+
+enum AnnouncementType {
+  kerko_lojtar        // I need 1 player to complete my team
+  kerko_kundershtare  // My team is looking for an opponent team
+  kerko_ekip          // I am a player looking for a team to join
+}
+
+model AnnouncementResponse {
+  id              Int          @id @default(autoincrement())
+  announcementId  Int
+  userId          Int
+  mesazhi         String?      @db.Text
+  created_at      DateTime     @default(now())
+
+  njoftimi        Announcement @relation(fields: [announcementId], references: [id])
+  perdoruesi      User         @relation("PerdoruesPergjigje", fields: [userId], references: [id])
+
+  @@map("announcement_responses")
+}
+
+// ─── EKIPI I PAVARUR (Standalone Team) ──────────────────────────
+// New table — teams that exist permanently, independent of events
+// Players can create a team, invite friends, and then register that team for events
+
+model StandaloneTeam {
+  id            Int                    @id @default(autoincrement())
+  emri          String                 @db.VarChar(100)
+  lloji_sportit String                 @db.VarChar(50)
+  kapiteni_id   Int
+  pershkrim     String?                @db.Text
+  created_at    DateTime               @default(now())
+
+  kapiteni      User                   @relation("KapiteniEkipit", fields: [kapiteni_id], references: [id])
+  anetaret      StandaloneTeamMember[]
+
+  @@map("standalone_teams")
+}
+
+model StandaloneTeamMember {
+  id          Int            @id @default(autoincrement())
+  ekipi_id    Int
+  userId      Int
+  roli        String         @default("anetare") // kapiteni, anetare
+  joined_at   DateTime       @default(now())
+
+  ekipi       StandaloneTeam @relation(fields: [ekipi_id], references: [id])
+  perdoruesi  User           @relation("AnetarEkipit", fields: [userId], references: [id])
+
+  @@unique([ekipi_id, userId])
+  @@map("standalone_team_members")
+}
+
