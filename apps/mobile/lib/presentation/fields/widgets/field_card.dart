@@ -61,9 +61,9 @@ class FieldCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: AppColors.textHint),
+                        const Icon(Icons.location_on, size: 14, color: AppColors.textLight),
                         const SizedBox(width: 4),
-                        Text(field.qyteti, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        Text(field.qyteti, style: const TextStyle(color: AppColors.textMedium, fontSize: 13)),
                       ],
                     ),
                     const Spacer(),

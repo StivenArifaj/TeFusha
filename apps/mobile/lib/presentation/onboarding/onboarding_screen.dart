@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../core/constants/app_colors.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -11,84 +13,111 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
-  int _currentPage = 0;
+  bool _isLastPage = false;
 
-  final List<OnboardingData> _pages = [
-    OnboardingData(
+  final List<_OnboardingPageData> _pages = [
+    _OnboardingPageData(
+      title: 'Gjej Fushën Perfekte',
+      body: 'Kërko qindra fusha sportive sipas qytetit, llojit dhe çmimit tuaj.',
       icon: Icons.search,
-      title: "Gjej Fushën Perfekte",
-      subtitle: "Kërko fushat sportive sipas qytetit, llojit dhe çmimit.",
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [AppColors.primaryLight, Colors.white],
+      ),
+      iconColor: AppColors.primary,
     ),
-    OnboardingData(
+    _OnboardingPageData(
+      title: 'Rezervo me Një Klik',
+      body: 'Zgjidh datën dhe orarin dhe konfirmo rezervimin tënd brenda sekondave.',
       icon: Icons.calendar_today,
-      title: "Rezervo Online",
-      subtitle: "Zgjidh orarin dhe rezervo fushën tënde në sekonda.",
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFFE8F5E9), Colors.white],
+      ),
+      iconColor: AppColors.sportFootball,
     ),
-    OnboardingData(
+    _OnboardingPageData(
+      title: 'Lëro & Garoje',
+      body: 'Gjej lojtar, formo ekipin tënd dhe regjistrohu në kampionate lokale.',
       icon: Icons.emoji_events,
-      title: "Lëro & Garoje",
-      subtitle: "Regjistrohu në turneu, gjej lojtar ose kundërshtar.",
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFFE3F2FD), Colors.white],
+      ),
+      iconColor: AppColors.sportVolleyball,
     ),
   ];
+
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_done', true);
+    if (mounted) {
+      context.go('/welcome');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           PageView.builder(
             controller: _controller,
             itemCount: _pages.length,
-            onPageChanged: (idx) => setState(() => _currentPage = idx),
-            itemBuilder: (context, idx) {
-              final data = _pages[idx];
+            onPageChanged: (index) {
+              setState(() => _isLastPage = index == _pages.length - 1);
+            },
+            itemBuilder: (context, index) {
+              final page = _pages[index];
               return Column(
                 children: [
-                  // Top 40% - Hero Gradient
+                  // Top 55%
                   Expanded(
-                    flex: 4,
+                    flex: 55,
                     child: Container(
                       width: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [AppColors.heroStart, AppColors.heroEnd],
+                      decoration: BoxDecoration(gradient: page.gradient),
+                      child: Center(
+                        child: Icon(
+                          page.icon,
+                          size: 120,
+                          color: page.iconColor,
                         ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(data.icon, size: 100, color: Colors.white),
-                          const SizedBox(height: 24),
-                          Text(
-                            data.title,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ),
-                  // Bottom 60% - White background
+                  // Bottom 45%
                   Expanded(
-                    flex: 6,
-                    child: Container(
-                      width: double.infinity,
-                      color: Colors.white,
-                      padding: const EdgeInsets.all(32),
+                    flex: 45,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Column(
                         children: [
                           const SizedBox(height: 40),
                           Text(
-                            data.subtitle,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: AppColors.textSecondary,
+                            page.title,
+                            style: const TextStyle(
+                              fontFamily: 'Outfit',
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
                             ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            page.body,
+                            style: const TextStyle(
+                              fontFamily: 'Outfit',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textMedium,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -98,60 +127,53 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               );
             },
           ),
-          // Dots and Buttons
+
+          // Navigation elements
           Positioned(
-            bottom: 60,
-            left: 32,
-            right: 32,
+            bottom: 40,
+            left: 24,
+            right: 24,
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    _pages.length,
-                    (idx) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.only(right: 8),
-                      height: 8,
-                      width: _currentPage == idx ? 24 : 8,
-                      decoration: BoxDecoration(
-                        color: _currentPage == idx ? AppColors.primary : AppColors.divider,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
+                SmoothPageIndicator(
+                  controller: _controller,
+                  count: _pages.length,
+                  effect: const ScrollingDotsEffect(
+                    activeDotColor: AppColors.primary,
+                    dotColor: AppColors.divider,
+                    dotHeight: 8,
+                    dotWidth: 8,
+                    activeDotScale: 1.4,
                   ),
                 ),
-                const SizedBox(height: 48),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (_currentPage < _pages.length - 1)
-                      TextButton(
-                        onPressed: () => context.go('/auth/login'),
-                        child: const Text("Kalo"),
-                      )
-                    else
-                      const SizedBox(width: 60),
-                    
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage < _pages.length - 1) {
-                          _controller.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        } else {
-                          context.go('/auth/login');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      ),
-                      child: Text(_currentPage == _pages.length - 1 ? "Fillo" : "Vazhdo"),
-                    ),
-                  ],
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_isLastPage) {
+                        _completeOnboarding();
+                      } else {
+                        _controller.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    },
+                    child: Text(_isLastPage ? 'Fillo' : 'Vazhdo'),
+                  ),
                 ),
+                const SizedBox(height: 12),
+                if (!_isLastPage)
+                  TextButton(
+                    onPressed: _completeOnboarding,
+                    child: const Text(
+                      'Kalo',
+                      style: TextStyle(color: AppColors.textMedium),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 48), // Placeholder for TextButton height
               ],
             ),
           ),
@@ -161,10 +183,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-class OnboardingData {
-  final IconData icon;
+class _OnboardingPageData {
   final String title;
-  final String subtitle;
+  final String body;
+  final IconData icon;
+  final Gradient gradient;
+  final Color iconColor;
 
-  OnboardingData({required this.icon, required this.title, required this.subtitle});
+  _OnboardingPageData({
+    required this.title,
+    required this.body,
+    required this.icon,
+    required this.gradient,
+    required this.iconColor,
+  });
 }

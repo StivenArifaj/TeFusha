@@ -25,6 +25,7 @@ dependencies:
   # Local Storage
   flutter_secure_storage: ^9.0.0
   hive_flutter: ^1.1.0
+  shared_preferences: ^2.2.2
 
   # UI
   google_fonts: ^6.1.0
@@ -37,6 +38,9 @@ dependencies:
   badges: ^3.1.2
   timeago: ^3.6.1
   lottie: ^3.1.2
+  smooth_page_indicator: ^1.1.0
+  pinput: ^4.0.0
+  flutter_screenutil: ^5.9.0
 
   # Maps
   google_maps_flutter: ^2.5.3
@@ -69,3 +73,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/icons/
+    - assets/fonts/

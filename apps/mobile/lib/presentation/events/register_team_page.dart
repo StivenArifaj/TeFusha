@@ -20,17 +20,19 @@ class _RegisterTeamForEventPageState extends State<RegisterTeamForEventPage> {
   @override
   void initState() {
     super.initState();
-    context.read<StandaloneTeamBloc>().add(LoadMyTeamsEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<StandaloneTeamBloc>().add(LoadMyTeamsEvent());
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => StandaloneTeamBloc(getIt()),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(title: const Text("Zgjidh Ekipin")),
-        body: BlocBuilder<StandaloneTeamBloc, StandaloneTeamState>(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(title: const Text("Zgjidh Ekipin")),
+      body: BlocBuilder<StandaloneTeamBloc, StandaloneTeamState>(
           builder: (context, state) {
             if (state is StandaloneTeamLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -74,14 +76,14 @@ class _RegisterTeamForEventPageState extends State<RegisterTeamForEventPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.group, color: AppColors.textSecondary),
+                          const Icon(Icons.group, color: AppColors.textMedium),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(team.emri, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                Text(team.lloji_sportit.toUpperCase(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                Text(team.lloji_sportit.toUpperCase(), style: const TextStyle(color: AppColors.textMedium, fontSize: 12)),
                               ],
                             ),
                           ),

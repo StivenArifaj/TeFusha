@@ -1,109 +1,139 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/datasources/local/token_storage.dart';
-import '../../presentation/splash/splash_screen.dart';
-import '../../presentation/onboarding/onboarding_screen.dart';
-import '../../presentation/auth/login_page.dart';
-import '../../presentation/auth/register_page.dart';
-import '../../presentation/home/home_page.dart';
-import '../../presentation/fields/field_list_page.dart';
-import '../../presentation/fields/field_detail_page.dart';
-import '../../presentation/booking/booking_page.dart';
-import '../../presentation/booking/booking_confirmation_page.dart';
-import '../../presentation/booking/my_bookings_page.dart';
-import '../../presentation/community/announcement_feed_page.dart';
-import '../../presentation/community/create_announcement_page.dart';
-import '../../presentation/community/announcement_detail_page.dart';
-import '../../presentation/teams/my_teams_page.dart';
-import '../../presentation/teams/create_team_page.dart';
-import '../../presentation/teams/team_detail_page.dart';
-import '../../presentation/events/event_list_page.dart';
-import '../../presentation/events/event_detail_page.dart';
-import '../../presentation/events/register_team_page.dart';
-import '../../presentation/events/bracket_page.dart';
-import '../../presentation/events/match_result_page.dart';
-import '../../presentation/profile/profile_page.dart';
-import '../../presentation/profile/edit_profile_page.dart';
-import '../../presentation/owner/owner_dashboard_page.dart';
-import '../../presentation/owner/register_field_page.dart';
-import '../../presentation/owner/owner_bookings_page.dart';
+import 'package:tefusha/data/datasources/local/token_storage.dart';
+import 'package:tefusha/presentation/splash/splash_screen.dart';
+import 'package:tefusha/presentation/onboarding/onboarding_screen.dart';
+import 'package:tefusha/presentation/welcome/welcome_screen.dart';
+import 'package:tefusha/presentation/auth/login_screen.dart';
+import 'package:tefusha/presentation/auth/sign_up_screen.dart';
+import 'package:tefusha/presentation/auth/otp_verify_screen.dart';
+import 'package:tefusha/presentation/auth/forgot_password_screen.dart';
+import 'package:tefusha/presentation/auth/create_new_password_screen.dart';
+import 'package:tefusha/presentation/auth/create_your_profile_screen.dart';
+import 'package:tefusha/presentation/main/bottom_navigation_screen.dart';
+import 'package:tefusha/presentation/home/home_screen.dart';
+import 'package:tefusha/presentation/search/search_screen.dart';
+import 'package:tefusha/presentation/filter/filter_screen.dart';
+import 'package:tefusha/presentation/fields/most_popular_screen.dart';
+import 'package:tefusha/presentation/fields/field_detail_screen.dart';
+import 'package:tefusha/presentation/booking/request_to_book_screen.dart';
+import 'package:tefusha/presentation/booking/checkout_screen.dart';
+import 'package:tefusha/presentation/booking/booking_detail_screen.dart';
+import 'package:tefusha/presentation/booking/booking_complete_screen.dart';
+import 'package:tefusha/presentation/booking/my_booking_screen.dart';
+import 'package:tefusha/presentation/community/announcement_feed_screen.dart';
+import 'package:tefusha/presentation/community/create_announcement_screen.dart';
+import 'package:tefusha/presentation/community/announcement_detail_screen.dart';
+import 'package:tefusha/presentation/teams/my_teams_screen.dart';
+import 'package:tefusha/presentation/teams/create_team_screen.dart';
+import 'package:tefusha/presentation/teams/team_detail_screen.dart';
+import 'package:tefusha/presentation/events/event_list_screen.dart';
+import 'package:tefusha/presentation/events/event_detail_screen.dart';
+import 'package:tefusha/presentation/profile/profile_screen.dart';
+import 'package:tefusha/presentation/profile/edit_profile_screen.dart';
+import 'package:tefusha/presentation/owner/owner_dashboard_screen.dart';
+import 'package:tefusha/presentation/owner/register_field_screen.dart';
+import 'package:tefusha/presentation/owner/owner_bookings_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
   redirect: (context, state) async {
-    final loggedIn   = await TokenStorage.isLoggedIn();
-    final loc        = state.matchedLocation;
-    final authRoutes = ['/auth/login', '/auth/register', '/onboarding', '/splash'];
-    final isAuthRoute = authRoutes.any((r) => loc.startsWith(r));
+    final loggedIn = await TokenStorage.isLoggedIn();
+    final loc = state.matchedLocation;
+    
+    // Public routes that don't require login
+    final publicRoutes = [
+      '/splash',
+      '/onboarding',
+      '/welcome',
+      '/login',
+      '/sign-up',
+      '/otp-verify',
+      '/forgot-password',
+      '/create-new-password',
+    ];
+    
+    final isPublicRoute = publicRoutes.any((r) => loc.startsWith(r));
 
-    if (!loggedIn && !isAuthRoute) return '/auth/login';
-    if (loggedIn  &&  isAuthRoute && loc != '/splash') return '/home';
+    if (!loggedIn && !isPublicRoute) return '/welcome';
+    if (loggedIn && (loc == '/login' || loc == '/sign-up' || loc == '/welcome')) return '/home';
+    
     return null;
   },
   routes: [
-    GoRoute(path: '/splash',         builder: (_, __) => const SplashScreen()),
-    GoRoute(path: '/onboarding',     builder: (_, __) => const OnboardingScreen()),
-    GoRoute(path: '/auth/login',     builder: (_, __) => const LoginPage()),
-    GoRoute(path: '/auth/register',  builder: (_, __) => const RegisterPage()),
-    GoRoute(path: '/home',           builder: (_, __) => const HomePage()),
-
+    GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
+    GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
+    GoRoute(path: '/welcome', builder: (_, __) => const WelcomeScreen()),
+    GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+    GoRoute(path: '/sign-up', builder: (_, __) => const SignUpScreen()),
+    GoRoute(
+      path: '/otp-verify',
+      builder: (_, state) => OtpVerifyScreen(email: state.extra as String? ?? ''),
+    ),
+    GoRoute(path: '/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
+    GoRoute(path: '/create-new-password', builder: (_, __) => const CreateNewPasswordScreen()),
+    GoRoute(path: '/create-profile', builder: (_, __) => const CreateYourProfileScreen()),
+    
+    // Main App Shell
+    GoRoute(path: '/home', builder: (_, __) => const BottomNavigationScreen()),
+    
+    // Search & Filter
+    GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
+    GoRoute(path: '/filter', builder: (_, __) => const FilterScreen()),
+    
     // Fields
-    GoRoute(path: '/fields',         builder: (_, __) => const FieldListPage()),
+    GoRoute(path: '/fields', builder: (_, __) => const MostPopularScreen()),
     GoRoute(
-      path: '/fields/:id',
-      builder: (_, s) => FieldDetailPage(fieldId: int.parse(s.pathParameters['id']!)),
+      path: '/field/:id',
+      builder: (_, s) => FieldDetailScreen(fieldId: int.parse(s.pathParameters['id']!)),
     ),
+    
+    // Booking
     GoRoute(
-      path: '/fields/:id/book',
-      builder: (_, s) => BookingPage(fieldId: int.parse(s.pathParameters['id']!)),
+      path: '/book/:id',
+      builder: (_, s) => RequestToBookScreen(fieldId: int.parse(s.pathParameters['id']!)),
     ),
-    GoRoute(path: '/booking/success', builder: (_, __) => const BookingConfirmationPage(fieldId: 0)),
-    GoRoute(path: '/my-bookings',    builder: (_, __) => const MyBookingsPage()),
-
+    GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
+    GoRoute(
+      path: '/booking/:id',
+      builder: (_, s) => BookingDetailScreen(id: int.parse(s.pathParameters['id']!)),
+    ),
+    GoRoute(path: '/booking-complete', builder: (_, __) => const BookingCompleteScreen(fieldId: 0)),
+    GoRoute(path: '/my-bookings', builder: (_, __) => const MyBookingScreen()),
+    
     // Community
-    GoRoute(path: '/community',      builder: (_, __) => const AnnouncementFeedPage()),
+    GoRoute(path: '/community', builder: (_, __) => const AnnouncementFeedScreen()),
+    GoRoute(path: '/community/new', builder: (_, __) => const CreateAnnouncementScreen()),
     GoRoute(
       path: '/community/:id',
-      builder: (_, s) => AnnouncementDetailPage(id: int.parse(s.pathParameters['id']!)),
+      builder: (_, s) => AnnouncementDetailScreen(id: int.parse(s.pathParameters['id']!)),
     ),
-    GoRoute(path: '/community/new',  builder: (_, __) => const CreateAnnouncementPage()),
-
+    
     // Teams
-    GoRoute(path: '/teams',          builder: (_, __) => const MyTeamsPage()),
-    GoRoute(path: '/teams/new',      builder: (_, __) => const CreateTeamPage()),
+    GoRoute(path: '/teams', builder: (_, __) => const MyTeamsScreen()),
+    GoRoute(path: '/teams/new', builder: (_, __) => const CreateTeamScreen()),
     GoRoute(
       path: '/teams/:id',
-      builder: (_, s) => TeamDetailPage(id: int.parse(s.pathParameters['id']!)),
+      builder: (_, s) => TeamDetailScreen(id: int.parse(s.pathParameters['id']!)),
     ),
-
-    // Events / Tournaments
-    GoRoute(path: '/events',         builder: (_, __) => const EventListPage()),
+    
+    // Events
+    GoRoute(path: '/events', builder: (_, __) => const EventListScreen()),
     GoRoute(
       path: '/events/:id',
-      builder: (_, s) => EventDetailPage(eventId: int.parse(s.pathParameters['id']!)),
+      builder: (_, s) => EventDetailScreen(eventId: int.parse(s.pathParameters['id']!)),
     ),
-    GoRoute(
-      path: '/events/:id/register',
-      builder: (_, s) => RegisterTeamForEventPage(eventId: int.parse(s.pathParameters['id']!)),
-    ),
-    GoRoute(
-      path: '/events/:id/bracket',
-      builder: (_, s) => BracketPage(eventId: int.parse(s.pathParameters['id']!)),
-    ),
-    GoRoute(
-      path: '/events/:eventId/matches/:matchId/result',
-      builder: (_, s) => MatchResultPage(
-        eventId: int.parse(s.pathParameters['eventId']!),
-        matchId: int.parse(s.pathParameters['matchId']!),
-      ),
-    ),
-
+    
     // Profile
-    GoRoute(path: '/profile',        builder: (_, __) => const ProfilePage()),
-    GoRoute(path: '/profile/edit',   builder: (_, __) => const EditProfilePage()),
-
-    // Field Owner
-    GoRoute(path: '/owner',          builder: (_, __) => const OwnerDashboardPage()),
-    GoRoute(path: '/owner/fields/new', builder: (_, __) => const RegisterFieldPage()),
-    GoRoute(path: '/owner/bookings', builder: (_, __) => const OwnerBookingsPage(fieldId: 0)),
+    GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+    GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfileScreen()),
+    
+    // Owner
+    GoRoute(path: '/owner', builder: (_, __) => const OwnerDashboardScreen()),
+    GoRoute(path: '/owner/fields/new', builder: (_, __) => const RegisterFieldScreen()),
+    GoRoute(path: '/owner/bookings', builder: (_, __) => const OwnerBookingsScreen(fieldId: 0)),
+    
+    // Misc
+    GoRoute(path: '/notifications', builder: (_, __) => const Scaffold(body: Center(child: Text('Notifications')))),
   ],
 );

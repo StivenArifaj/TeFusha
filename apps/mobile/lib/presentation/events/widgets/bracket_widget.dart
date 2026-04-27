@@ -28,7 +28,7 @@ class BracketWidget extends StatelessWidget {
               children: [
                 Text(
                   "Raundi $round",
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMedium),
                 ),
                 const SizedBox(height: 24),
                 ...groupedMatches[round]!.map((match) => _MatchBox(match: match)),
@@ -79,7 +79,7 @@ class _MatchBox extends StatelessWidget {
               name,
               style: TextStyle(
                 fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
-                color: isWinner ? AppColors.textPrimary : AppColors.textSecondary,
+                color: isWinner ? AppColors.textDark : AppColors.textMedium,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -89,7 +89,7 @@ class _MatchBox extends StatelessWidget {
             score?.toString() ?? "-",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isWinner ? AppColors.primary : AppColors.textHint,
+              color: isWinner ? AppColors.primary : AppColors.textLight,
             ),
           ),
         ],

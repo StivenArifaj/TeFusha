@@ -49,7 +49,7 @@ class _MatchResultPageState extends State<MatchResultPage> {
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Text("VS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textHint)),
+                  child: Text("VS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textLight)),
                 ),
                 Expanded(
                   child: Column(
